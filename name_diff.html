@@ -1,0 +1,186 @@
+---
+layout: default
+---
+<style type="text/css">
+  body { font:Arial;}
+  h1 {
+    font-size: 20px; 
+  }
+  h2  {
+    font-size: 14px;
+  }
+  path { 
+    stroke: steelblue;
+    stroke-width: 2;
+    fill: none;
+  }
+
+  .date-track-line {
+    stroke-width: 2;
+    shape-rendering: crispEdges;
+    stroke-dasharray: 5,5;
+    stroke: grey;
+  }
+
+  .axis path,
+  .axis line {
+    fill: none;
+    stroke: grey;
+    stroke-width: 1;
+    shape-rendering: crispEdges;
+  }
+
+
+  .overlay {
+    fill: none;
+    pointer-events: all;
+  }
+
+  .focus circle {
+    fill: none;
+    stroke: steelblue;
+  }
+
+</style>
+<!-- <h1>Up to the hour Energy Social Platform stats</h1> -->
+<h2>Last updated: <span id="time"></span></h2>
+<!-- <svg width="960" height="500"></svg> -->
+<script src="https://d3js.org/d3.v4.min.js"></script>
+
+<script>
+
+// Set the dimensions of the canvas / graph
+var	margin = {top: 30, right: 20, bottom: 30, left: 50},
+	width = 550 - margin.left - margin.right,
+	height = 320 - margin.top - margin.bottom;
+
+// Parse the date / time
+var parseTime = d3.timeParse("%m/%d/%y %H:%M");
+var bisectDate = d3.bisector(function(d) { return d.date; }).left;
+
+// Set the ranges
+var x = d3.scaleTime()
+    .rangeRound([0, width]);
+var y1 = d3.scaleLinear()
+    .rangeRound([height, 0]);
+
+// Define the line
+var	valueline = d3.svg.line()
+	.x(function(d) { return x(d.date); })
+	.y(function(d) { 
+    var diff = d["Bonjovi Hardeman"] - d["H. King Buttermore"]
+    return y1(diff); });	
+    
+// Adds the svg canvas
+var	chart1 = d3.select("body")
+	.append("svg")  
+		.attr("width", width + margin.left + margin.right)
+		.attr("height", height + margin.top + margin.bottom)
+	.append("g")
+    .attr("class","chart")
+		.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+
+// Get the data
+d3.csv("https://s3-us-west-2.amazonaws.com/energy2/social/name_data5.csv", function(error, data) {
+	data.forEach(function(d) {
+    d.date = parseTime(d.date);
+    d["Bonjovi Hardeman"] = parseFloat(d["Bonjovi Hardeman"].replace(',',''));
+    d["H. King Buttermore"] = parseFloat(d["H. King Buttermore"].replace(',',''));
+	});
+
+  // console.log(data)
+
+  data.sort(function(a, b) {
+    return a.date - b.date;
+  });
+
+  // set the date updated
+  var length = data.length - 1;
+  var timeNow = data[length].date;
+  element = document.getElementById('time');
+  element.innerHTML = timeNow
+
+	// Scale the range of the data
+	x.domain(d3.extent(data, function(d) { return d.date; }));
+  // y1.domain([0, d3.max(data, function(d) { return d["Bonjovi Hardeman"]; })]);
+  y1.domain([-50, 50]);
+
+	// Add the X Axis
+	chart1.append("g")
+		.attr("class", "x axis")
+		.attr("transform", "translate(0," + (height/2) + ")")
+		.call(d3.axisBottom(x));
+
+	// Add the Y Axis
+	chart1.append("g")
+		.attr("class", "y axis")
+    	.call(d3.axisLeft(y1))
+			.append("text")
+			.attr("fill", "#000")
+			.attr("transform", "rotate(-90)")
+			.attr("y", -36)
+      .attr("x",-height/2 - 8)
+			.attr("dy", "0.4em")
+			.attr("text-anchor", "middle")
+			.text("←H. King Buttermore III       ___        Bonjovi Hardeman→");
+
+  // Add the valueline path.
+  chart1.append("path")
+    .attr("class", "line")
+    .attr("d", valueline(data));
+
+  var focus1 = chart1.append("g")
+    .attr("class", "focus")
+    // .style("display", "none");
+
+  focus1.append("circle")
+    .attr("r", 4.5);
+
+  focus1.append("text")
+    .attr("x", -50)
+    .attr("dy", ".35em");
+
+  chart1.append("rect")
+    .attr("class", "overlay")
+    .attr("width", width)
+    .attr("height", height)
+    // .on("mouseover", function() { focus1.style("display", null); })
+    // .on("mouseout", function() { focus1.style("display", "none"); })
+    .on("mousemove", mousemove);
+
+d3.selectAll(".chart")
+  .append("g")    
+    .append("line")
+      .attr("class","date-track-line");
+
+
+
+function mousemove() {
+    var x0 = x.invert(d3.mouse(this)[0]),
+        i = bisectDate(data, x0, 1),
+        d0 = data[i - 1],
+        d1 = data[i],
+        d = x0 - d0.date > d1.date - x0 ? d1 : d0;
+
+    var diff = d["Bonjovi Hardeman"] - d["H. King Buttermore"]
+
+    focus1.attr("transform", "translate(" + x(d.date) + "," + y1(diff) + ")");
+    focus1.select("text").text(diff);
+
+
+    var ys = [y1(diff)]
+
+    d3.selectAll(".date-track-line")
+      .attr("x1",x(d.date))
+      .attr("x2",x(d.date))
+      .attr("y1",function(d,i){  
+        return y1(diff)
+      })  
+      .attr("y2",height/2)
+  }
+
+});
+		
+
+</script>
