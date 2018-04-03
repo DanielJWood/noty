@@ -68,7 +68,7 @@ var y1 = d3.scaleLinear()
 var	valueline = d3.svg.line()
 	.x(function(d) { return x(d.date); })
 	.y(function(d) { 
-    var diff = d["Bonjovi Hardeman"] - d["H. King Buttermore"]
+    var diff = d["Blossom Albuquerque"] - d["Obra Kernodle IV"]
     return y1(diff); });	
     
 // Adds the svg canvas
@@ -82,11 +82,12 @@ var	chart1 = d3.select("body")
 
 
 // Get the data
-d3.csv("https://s3-us-west-2.amazonaws.com/energy2/social/name_data5.csv", function(error, data) {
+d3.csv("https://s3-us-west-2.amazonaws.com/energy2/social/fruithandler_regional.csv", function(error, data) {
 	data.forEach(function(d) {
+    // console.log(d)
     d.date = parseTime(d.date);
-    d["Bonjovi Hardeman"] = parseFloat(d["Bonjovi Hardeman"].replace(',',''));
-    d["H. King Buttermore"] = parseFloat(d["H. King Buttermore"].replace(',',''));
+    d["Blossom Albuquerque"] = parseFloat(d["Blossom Albuquerque"].replace(',',''));
+    d["Obra Kernodle IV"] = parseFloat(d["Obra Kernodle IV"].replace(',',''));
 	});
 
   // console.log(data)
@@ -103,8 +104,8 @@ d3.csv("https://s3-us-west-2.amazonaws.com/energy2/social/name_data5.csv", funct
 
 	// Scale the range of the data
 	x.domain(d3.extent(data, function(d) { return d.date; }));
-  // y1.domain([0, d3.max(data, function(d) { return d["Bonjovi Hardeman"]; })]);
-  y1.domain([-50, 50]);
+  // y1.domain([0, d3.max(data, function(d) { return d["Blossom Albuquerque"]; })]);
+  y1.domain([-200, 200]);
 
 	// Add the X Axis
 	chart1.append("g")
@@ -123,7 +124,7 @@ d3.csv("https://s3-us-west-2.amazonaws.com/energy2/social/name_data5.csv", funct
       .attr("x",-height/2 - 8)
 			.attr("dy", "0.4em")
 			.attr("text-anchor", "middle")
-			.text("←H. King Buttermore III       ___        Bonjovi Hardeman→");
+			.text("←Obra Kernodle IV       ___        Blossom Albuquerque→");
 
   // Add the valueline path.
   chart1.append("path")
@@ -163,7 +164,7 @@ function mousemove() {
         d1 = data[i],
         d = x0 - d0.date > d1.date - x0 ? d1 : d0;
 
-    var diff = d["Bonjovi Hardeman"] - d["H. King Buttermore"]
+    var diff = d["Blossom Albuquerque"] - d["Obra Kernodle IV"]
 
     focus1.attr("transform", "translate(" + x(d.date) + "," + y1(diff) + ")");
     focus1.select("text").text(diff);
